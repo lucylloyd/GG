@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Habits">
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Habits</title>
+<style>
+:root{
+  --bg:#ffffff; --text:#4B1528; --muted:#993556; --faint:#B4B2A9;
+  --acc:#F2A9C2; --acc-line:#DE7C9C; --soft:#FDF0F4; --line:#F7D6E1;
+  --perfect:#EC86A8; --blue:#B5D4F4; --cell:#2C2C2A; --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  padding:env(safe-area-inset-top) 0 calc(72px + env(safe-area-inset-bottom));min-height:100vh;
+  -webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+svg{display:block}
+.screen{padding:0 16px 24px;max-width:480px;margin:0 auto}
+.screen[hidden]{display:none}
+.top{display:flex;align-items:flex-end;justify-content:space-between;padding:18px 0 14px}
+.sub{font-size:14px;color:var(--muted)}
+h1{font-size:30px;font-weight:700;margin:2px 0 0;letter-spacing:-.5px}
+.link{color:var(--acc-line);font-weight:600;font-size:16px;padding:8px 0 4px 12px}
+.card{background:#fff;border:1.5px solid var(--line);border-radius:var(--r)}
+
+.summary{display:flex;align-items:center;gap:16px;padding:16px;margin-bottom:16px;position:relative}
+.ring{flex:none;transition:transform .25s}
+.ring .prog{transition:stroke-dashoffset .45s cubic-bezier(.3,1.4,.5,1)}
+.ring.pop{transform:scale(1.08)}
+.big{font-size:20px;font-weight:700}
+.streak{display:flex;align-items:center;gap:4px;margin-top:4px}
+.streak svg{color:var(--acc-line)}
+
+.list{display:flex;flex-direction:column;gap:8px}
+.goal{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;
+  border:1.5px solid var(--line);border-radius:var(--r);background:#fff;transition:background .2s,transform .1s}
+.goal:active{transform:scale(.98)}
+.goal .tick{width:28px;height:28px;flex:none;border-radius:50%;border:2.5px solid var(--acc-line);
+  display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .2s,border-color .2s}
+.goal .name{flex:1;min-width:0;font-size:17px;overflow-wrap:anywhere}
+.goal.done{background:var(--soft);border-color:transparent}
+.goal.done .tick{background:var(--acc);border-color:var(--acc)}
+.goal.done .name{color:var(--muted);text-decoration:line-through}
+.goal .del{width:36px;height:36px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--soft)}
+
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty .big{color:var(--text);margin-bottom:6px}
+.btn{display:inline-flex;align-items:center;gap:6px;margin-top:16px;padding:12px 20px;border-radius:999px;background:var(--acc);color:var(--text);font-weight:700}
+
+.addrow{display:flex;gap:8px;margin-bottom:6px}
+.addrow input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--text);padding:13px 14px;
+  border:1.5px solid var(--line);border-radius:var(--r);outline:none;background:#fff;-webkit-user-select:text;user-select:text}
+.addrow input:focus{border-color:var(--acc-line)}
+.addrow input::placeholder{color:var(--faint)}
+.plusfill{width:50px;flex:none;border-radius:var(--r);background:var(--acc);color:var(--text);display:flex;align-items:center;justify-content:center}
+.err{color:#A32D2D;font-size:14px;margin:4px 2px 0}
+.section{font-size:14px;font-weight:700;color:var(--muted);margin:20px 2px 8px}
+.idea{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px}
+.idea .txt{flex:1;min-width:0}
+.idea .name{font-weight:600;font-size:16px}
+.idea .sub{font-size:13px;margin-top:2px}
+.xbtn{width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--faint)}
+.plusline{width:36px;height:36px;flex:none;border-radius:50%;border:2.5px solid var(--acc-line);color:var(--acc-line);display:flex;align-items:center;justify-content:center}
+
+.monthrow{display:flex;align-items:center;gap:6px}
+.monthrow h1{flex:1}
+.navbtn{width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--muted);display:flex;align-items:center;justify-content:center}
+.calcard{padding:12px}
+.wk,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}
+.wk{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.day{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--faint)}
+.day.perfect{background:var(--perfect);color:var(--cell);font-weight:600}
+.day.missed{background:var(--blue);color:var(--cell)}
+.day.today{box-shadow:inset 0 0 0 2.5px var(--acc-line);color:var(--text);font-weight:700}
+.legend{display:flex;justify-content:center;gap:18px;margin:12px 0 16px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--soft);border-radius:var(--r);padding:12px 6px;text-align:center}
+.stat b{display:block;font-size:26px}
+.stat span{font-size:13px;color:var(--muted)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(255,255,255,.96);
+  border-top:1.5px solid var(--line);padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:5}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--faint);padding:4px 0}
+.tabs button.on{color:var(--acc-line);font-weight:700}
+
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;
+  background:var(--text);color:#fff;padding:10px 18px;border-radius:999px;font-size:15px;transition:.25s;pointer-events:none;z-index:10;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.heart{position:absolute;left:var(--x);top:var(--y);color:var(--perfect);pointer-events:none;
+  animation:fly 1s ease-out forwards}
+@keyframes fly{from{transform:translate(-50%,-50%) scale(.4);opacity:1}
+  to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.1);opacity:0}}
+.warn{background:#FCEBEB;color:#791F1F;font-size:14px;padding:10px 14px;border-radius:12px;margin-top:12px}
+</style>
+</head>
+<body>
+
+<section class="screen" id="s-today">
+  <div class="top">
+    <div><div class="sub" id="dateLbl"></div><h1>Today</h1></div>
+    <button class="link" data-act="edit" id="editBtn">Edit</button>
+  </div>
+  <div class="card summary" id="summary">
+    <svg class="ring" id="ring" width="92" height="92" viewBox="0 0 92 92" aria-hidden="true">
+      <circle cx="46" cy="46" r="38" fill="none" stroke="#FDF0F4" stroke-width="12"/>
+      <circle class="prog" id="ringProg" cx="46" cy="46" r="38" fill="none" stroke="#F2A9C2" stroke-width="12"
+        stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76" transform="rotate(-90 46 46)"/>
+      <text id="pct" x="46" y="52" text-anchor="middle" font-size="18" font-weight="700" fill="#4B1528"></text>
+    </svg>
+    <div>
+      <div class="big" id="cnt"></div>
+      <div class="sub streak" id="streakLbl"></div>
+    </div>
+  </div>
+  <div class="list" id="goalList"></div>
+  <div id="storageWarn"></div>
+</section>
+
+<section class="screen" id="s-ideas" hidden>
+  <div class="top"><div><div class="sub">Based on your goals</div><h1>Ideas for you</h1></div></div>
+  <form class="addrow" id="addForm" autocomplete="off">
+    <input id="newGoal" placeholder="Add your own goal" maxlength="60" enterkeyhint="done" aria-label="New goal">
+    <button class="plusfill" aria-label="Add goal" id="addBtn"></button>
+  </form>
+  <div class="err" id="err" hidden></div>
+  <div class="section">Suggestions</div>
+  <div class="list" id="ideaList"></div>
+</section>
+
+<section class="screen" id="s-cal" hidden>
+  <div class="top" style="display:block">
+    <div class="sub">Your history</div>
+    <div class="monthrow">
+      <h1 id="monthLbl"></h1>
+      <button class="navbtn" data-act="prev" aria-label="Previous month" id="prevBtn"></button>
+      <button class="navbtn" data-act="next" aria-label="Next month" id="nextBtn"></button>
+    </div>
+  </div>
+  <div class="card calcard">
+    <div class="wk"><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="legend"><span><i style="background:var(--perfect)"></i>Perfect day</span><span><i style="background:var(--blue)"></i>Not quite</span></div>
+  <div class="stats">
+    <div class="stat"><b id="stStreak">0</b><span>Streak</span></div>
+    <div class="stat"><b id="stBest">0</b><span>Best streak</span></div>
+    <div class="stat"><b id="stTotal">0</b><span>Perfect days</span></div>
+  </div>
+</section>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="today" class="on"><span data-icon="checkbox"></span>Today</button>
+  <button data-tab="ideas"><span data-icon="bulb"></span>Ideas</button>
+  <button data-tab="cal"><span data-icon="calendar"></span>Calendar</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- icons ----------
+const P = {
+  check:'<path d="M5 12l5 5L20 7"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>',
+  left:'<path d="M15 6l-6 6 6 6"/>',
+  right:'<path d="M9 6l6 6-6 6"/>',
+  flame:'<path d="M12 12c2-2.96 0-7-1-8 0 3.04-1.77 4.74-3 6-1.23 1.26-2 3.24-2 5a6 6 0 1 0 12 0c0-1.53-1.06-3.94-2-5-1.79 3-2.79 3-4 2z"/>',
+  bulb:'<path d="M3 12h1m8-9v1m8 8h1M5.6 5.6l.7.7m12.1-.7l-.7.7M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0-1 3a2 2 0 0 1-4 0a3.5 3.5 0 0 0-1-3M9.7 17h4.6"/>',
+  calendar:'<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16"/>',
+  checkbox:'<path d="M9 11l3 3l8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
+  heart:'<path fill="currentColor" stroke="none" d="M12 21s-7.5-4.6-9.5-9.2C1 8.3 3.3 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.7 0 6 3.8 4.5 7.3C19.5 16.4 12 21 12 21z"/>'
+};
+const icon = (n, s = 20, w = 2.4) =>
+  `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+document.querySelectorAll('[data-icon]').forEach(el => el.outerHTML = icon(el.dataset.icon, 24, 2));
+addBtn.innerHTML = icon('plus', 24, 3);
+prevBtn.innerHTML = icon('left', 22);
+nextBtn.innerHTML = icon('right', 22);
+
+// ---------- ideas library ----------
+const LIB = [
+  {k:['water','drink','hydrat'], s:['Herbal tea after dinner','Glass of water when you wake up','Carry a water bottle']},
+  {k:['walk','step','run','jog','gym','exercise','workout','cycl','bike','swim','fitness'], s:['Take the stairs','Stretch for 5 minutes','Get outside for 10 minutes','Do 10 push-ups']},
+  {k:['read','book','page'], s:['No phone in bed','Write one line in a journal','Listen to a podcast']},
+  {k:['stretch','yoga','pilates'], s:['Meditate for 5 minutes','Take 5 deep breaths','Foam roll for 5 minutes']},
+  {k:['meditat','breath','mindful','calm','relax'], s:['Write 3 things you\'re grateful for','Stretch for 5 minutes','10 minutes with no screens']},
+  {k:['bedtime','sleep','wake','early','nap','lights out'], s:['No caffeine after 2pm','Lights out by 11pm','No phone in bed','Open the curtains when you wake up']},
+  {k:['phone','screen','social media','instagram','tiktok','scroll'], s:['Phone-free breakfast','Read 10 pages','Get outside for 10 minutes']},
+  {k:['fruit','veg','eat','food','breakfast','lunch','dinner','cook','meal','sugar','snack','protein'], s:['Eat a piece of fruit','Cook one meal from scratch','Have veg with every meal','Eat breakfast']},
+  {k:['journal','write','diary'], s:['Write 3 things you\'re grateful for','Plan tomorrow tonight','Read 10 pages']},
+  {k:['grateful','gratitude','thank'], s:['Send someone a kind message','Write one line in a journal']},
+  {k:['make bed','clean','tidy','dish','laundry','declutter','hoover','vacuum'], s:['10-minute tidy','Wash up before bed','Clear your desk','Put one thing away']},
+  {k:['study','learn','language','duolingo','course','practi','piano','guitar','revise','revision'], s:['Practise for 15 minutes','Learn 5 new words','Review your notes']},
+  {k:['friend','family','call','text','mum','mom','dad','nan','gran'], s:['Message a friend','Call a family member','Send someone a kind message']},
+  {k:['outside','sun','fresh air','nature','garden'], s:['Walk 10k steps','Eat lunch outside']},
+  {k:['money','budget','spend','sav'], s:['Check your spending','No takeaway coffee','Put £5 in savings']},
+  {k:['vitamin','medic','pill','skin','teeth','floss','brush'], s:['Floss your teeth','Skincare routine','Take your vitamins']},
+  {k:['work','email','focus','task','todo','to-do'], s:['Plan tomorrow tonight','Take a proper lunch break','Clear your inbox']},
+  {k:['coffee','caffeine','alcohol','drink less','wine','beer'], s:['No caffeine after 2pm','Drink 8 glasses of water','Alcohol-free day']}
+];
+const GENERAL = ['Drink 8 glasses of water','Walk 10k steps','Read 10 pages','Make bed','Stretch for 5 minutes',
+  'Get outside for 10 minutes','Write 3 things you\'re grateful for','No phone in bed'];
+
+// ---------- dates ----------
+const pad = n => String(n).padStart(2, '0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const todayKey = () => keyOf(new Date());
+
+// ---------- storage ----------
+const KEY = 'habits.v1';
+let storageOk = true;
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.goals && s.days) return s;
+  } catch (e) { storageOk = false; }
+  return { goals: [], days: {}, dismissed: [], start: todayKey() };
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; }
+  catch (e) { storageOk = false; }
+}
+let state = load();
+
+// ---------- model ----------
+const active = () => state.goals.filter(g => !g.deleted);
+const goalName = id => (state.goals.find(g => g.id === id) || {}).name || '';
+const sameName = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+// Today's record always mirrors the current goal list; past days are frozen as they were.
+function ensureToday() {
+  const k = todayKey();
+  const rec = state.days[k] || (state.days[k] = { g: [], d: [] });
+  rec.g = active().map(g => g.id);
+  rec.d = rec.d.filter(id => rec.g.includes(id));
+  if (state.start > k) state.start = k;
+  return rec;
+}
+function isPerfect(k) {
+  const r = state.days[k];
+  return !!r && r.g.length > 0 && r.g.every(id => r.d.includes(id));
+}
+function stats() {
+  const today = parseKey(todayKey());
+  let streak = 0;
+  let d = isPerfect(keyOf(today)) ? today : addDays(today, -1);
+  while (keyOf(d) >= state.start && isPerfect(keyOf(d))) { streak++; d = addDays(d, -1); }
+  let best = 0, run = 0, total = 0;
+  for (let x = parseKey(state.start); x <= today; x = addDays(x, 1)) {
+    if (isPerfect(keyOf(x))) { run++; total++; best = Math.max(best, run); } else run = 0;
+  }
+  return { streak, best, total };
+}
+function addGoal(name) {
+  name = name.trim().replace(/\s+/g, ' ');
+  if (!name) return 'Type a goal first';
+  if (active().some(g => sameName(g.name, name))) return 'You already have that goal';
+  state.goals.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name });
+  ensureToday(); save();
+  return null;
+}
+function suggestions() {
+  const have = active().map(g => g.name);
+  const skip = n => have.some(h => sameName(h, n)) || state.dismissed.some(h => sameName(h, n));
+  const out = [], seen = new Set();
+  for (const g of active()) {
+    for (const entry of LIB) {
+      if (!entry.k.some(k => new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(g.name))) continue;
+      for (const s of entry.s) {
+        const low = s.toLowerCase();
+        if (skip(s) || seen.has(low)) continue;
+        seen.add(low); out.push({ name: s, because: g.name });
+      }
+    }
+  }
+  // interleave so one goal doesn't hog the list
+  const byGoal = {};
+  out.forEach(o => (byGoal[o.because] = byGoal[o.because] || []).push(o));
+  const mixed = [], groups = Object.values(byGoal);
+  for (let i = 0; mixed.length < out.length; i++) groups.forEach(g => g[i] && mixed.push(g[i]));
+  for (const s of GENERAL) {
+    if (mixed.length >= 3) break;
+    if (!skip(s) && !seen.has(s.toLowerCase())) mixed.push({ name: s, because: null });
+  }
+  return mixed.slice(0, 8);
+}
+
+// ---------- ui ----------
+let tab = 'today', editing = false;
+const now = new Date();
+let view = { y: now.getFullYear(), m: now.getMonth() };
+let lastDay = todayKey();
+const esc = s => s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+
+function renderToday() {
+  const rec = ensureToday();
+  const goals = active();
+  dateLbl.textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  editBtn.hidden = !goals.length;
+  editBtn.textContent = editing ? 'Done' : 'Edit';
+  const done = rec.d.length, n = goals.length, p = n ? done / n : 0;
+  ringProg.setAttribute('stroke-dashoffset', (238.76 * (1 - p)).toFixed(2));
+  pct.textContent = Math.round(p * 100) + '%';
+  cnt.textContent = !n ? 'No goals yet' : done === n ? 'Perfect day!' : `${done} of ${n} done`;
+  const st = stats();
+  streakLbl.innerHTML = st.streak
+    ? `${icon('flame', 16)} ${st.streak} perfect day${st.streak === 1 ? '' : 's'} in a row`
+    : n ? 'Tick everything for a perfect day' : 'Add a goal to get started';
+  goalList.innerHTML = !n
+    ? `<div class="empty"><div class="big">Start with one small goal</div>Pick something you can do every day.<br><button class="btn" data-tab="ideas">${icon('plus', 18, 3)} Add a goal</button></div>`
+    : goals.map(g => {
+        const d = rec.d.includes(g.id);
+        return editing
+          ? `<div class="goal"><span class="name">${esc(g.name)}</span><button class="del" data-act="del" data-id="${g.id}" aria-label="Delete ${esc(g.name)}">${icon('trash', 20)}</button></div>`
+          : `<button class="goal${d ? ' done' : ''}" data-act="tick" data-id="${g.id}" aria-pressed="${d}"><span class="tick">${d ? icon('check', 18, 3.2) : ''}</span><span class="name">${esc(g.name)}</span></button>`;
+      }).join('');
+  storageWarn.innerHTML = storageOk ? '' : '<div class="warn">This browser isn\'t saving your ticks. Add the app to your home screen and turn off Private Browsing.</div>';
+}
+
+function renderIdeas() {
+  const list = suggestions();
+  ideaList.innerHTML = list.length ? list.map((s, i) => `
+    <div class="card idea">
+      <div class="txt"><div class="name">${esc(s.name)}</div><div class="sub">${s.because ? 'Because you track ' + esc(s.because.toLowerCase()) : 'A popular place to start'}</div></div>
+      <button class="xbtn" data-act="dismiss" data-name="${esc(s.name)}" aria-label="Hide this idea">${icon('x', 18)}</button>
+      <button class="plusline" data-act="addIdea" data-name="${esc(s.name)}" aria-label="Add ${esc(s.name)}">${icon('plus', 20, 3)}</button>
+    </div>`).join('')
+    : '<div class="empty">You\'ve seen all the ideas for your goals. Add a new goal to get more.</div>';
+}
+
+function renderCal() {
+  const first = new Date(view.y, view.m, 1);
+  monthLbl.textContent = first.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const offset = (first.getDay() + 6) % 7;
+  const days = new Date(view.y, view.m + 1, 0).getDate();
+  const tk = todayKey();
+  let html = '<div></div>'.repeat(offset);
+  for (let d = 1; d <= days; d++) {
+    const k = keyOf(new Date(view.y, view.m, d));
+    let cls = 'day';
+    if (k === tk) cls += isPerfect(k) ? ' perfect today' : ' today';
+    else if (k < tk && k >= state.start) cls += isPerfect(k) ? ' perfect' : ' missed';
+    html += `<div class="${cls}">${d}</div>`;
+  }
+  grid.innerHTML = html;
+  const st = stats();
+  stStreak.textContent = st.streak; stBest.textContent = st.best; stTotal.textContent = st.total;
+}
+
+function render() {
+  lastDay = todayKey();
+  for (const t of ['today', 'ideas', 'cal']) document.getElementById('s-' + t).hidden = t !== tab;
+  tabs.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  if (tab === 'today') renderToday();
+  if (tab === 'ideas') renderIdeas();
+  if (tab === 'cal') renderCal();
+}
+
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => toastEl.classList.remove('show'), 1600);
+}
+const toastEl = document.getElementById('toast');
+
+function celebrate() {
+  ring.classList.add('pop'); setTimeout(() => ring.classList.remove('pop'), 300);
+  const box = summary.getBoundingClientRect(), r = ring.getBoundingClientRect();
+  const cx = r.left - box.left + r.width / 2, cy = r.top - box.top + r.height / 2;
+  for (let i = 0; i < 14; i++) {
+    const a = (i / 14) * Math.PI * 2, dist = 60 + Math.random() * 50;
+    const h = document.createElement('span');
+    h.className = 'heart';
+    h.innerHTML = icon('heart', 14 + Math.round(Math.random() * 10));
+    h.style.cssText = `--x:${cx}px;--y:${cy}px;--dx:${Math.cos(a) * dist}px;--dy:${Math.sin(a) * dist}px;animation-delay:${Math.random() * 120}ms`;
+    summary.appendChild(h);
+    setTimeout(() => h.remove(), 1300);
+  }
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-act]');
+  if (!t) return;
+  if (t.dataset.tab) {
+    tab = t.dataset.tab; editing = false;
+    if (tab === 'cal') { const n = new Date(); view = { y: n.getFullYear(), m: n.getMonth() }; }
+    window.scrollTo(0, 0); render(); return;
+  }
+  const act = t.dataset.act;
+  if (act === 'tick') {
+    const rec = ensureToday(), id = t.dataset.id;
+    const was = isPerfect(todayKey());
+    rec.d = rec.d.includes(id) ? rec.d.filter(x => x !== id) : rec.d.concat(id);
+    save(); render();
+    if (!was && isPerfect(todayKey())) celebrate();
+  } else if (act === 'edit') {
+    editing = !editing; render();
+  } else if (act === 'del') {
+    const g = state.goals.find(x => x.id === t.dataset.id);
+    if (g && confirm(`Delete "${g.name}"?\nPast days will stay as they were.`)) {
+      g.deleted = true; ensureToday(); save();
+      if (!active().length) editing = false;
+      render();
+    }
+  } else if (act === 'addIdea') {
+    if (!addGoal(t.dataset.name)) { toast('Added to today'); render(); }
+  } else if (act === 'dismiss') {
+    state.dismissed.push(t.dataset.name); save(); render();
+  } else if (act === 'prev' || act === 'next') {
+    view.m += act === 'prev' ? -1 : 1;
+    if (view.m < 0) { view.m = 11; view.y--; }
+    if (view.m > 11) { view.m = 0; view.y++; }
+    renderCal();
+  }
+});
+
+addForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const msg = addGoal(newGoal.value);
+  if (msg) { err.textContent = msg; err.hidden = false; return; }
+  newGoal.value = ''; newGoal.blur(); toast('Added to today'); render();
+});
+newGoal.addEventListener('input', () => { err.hidden = true; });
+
+// New day at midnight: refresh when the date changes or the app comes back to the front.
+setInterval(() => { if (todayKey() !== lastDay) render(); }, 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+save(); render();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
